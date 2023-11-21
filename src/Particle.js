@@ -23,8 +23,12 @@ export class Particle {
         this.material.color.setHex(h)
     }
 
+    setColor(c) {
+        this.material.color.setRGB(c,0, 0)
+    }
+
     setRadius(r) {
-        this.geometry.scale.setScalar(r, r, r)
+        this.geometry.scale(r, r, r)
     }
 
     setPosition(x, y, z) {

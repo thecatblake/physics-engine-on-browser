@@ -11,40 +11,36 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
 const controls = new OrbitControls( camera, renderer.domElement );
-camera.position.set( 0, 20, 100 );
+camera.position.set( 0, 100, 0 );
 controls.update()
 
 const particles = []
-const particle_num = 3
-const G = 10
+const particle_num = 1000
+const G = 100
 
 for(let i=0; i < particle_num; i++) {
     const particle = new Particle()
     particles.push(particle)
+    particle.setMass(0.01)
+    particle.setPosition(Math.random()*100 - 50, Math.random() * 100 - 50, Math.random() * 100 - 50)
+    if(i !== 0)
+        particle.velocity.set(Math.random(), Math.random(), Math.random())
+    particle.setRadius(0.1)
+    particle.setColorHex(0xff0000)
     scene.add(particle.mesh)
 }
 
-particles[0].setMass(30)
-particles[0].setColorHex(0xff0000)
-particles[0].setPosition(20, 0, 0)
-particles[1].setMass(1)
-particles[1].setPosition(0, 0, 0)
-particles[1].velocity.set(0, 0, -3)
-particles[1].setColorHex(0x0000ff)
-particles[2].setMass(1/2)
-particles[2].setPosition(-20, 0, 0)
-particles[2].velocity.set(0, 0, -3)
-
-const light = new THREE.PointLight(0xffffff, 2000)
-light.position.set(-10, 10, -10)
+const light = new THREE.AmbientLight(0xffffff, 0.9)
+light.position.set(1000, 1000, 1000)
 scene.add(light)
 
-const light2 = new THREE.PointLight(0xffffff, 1000)
-light2.position.set(20, 20, 20)
-scene.add(light2)
+const p_light = new THREE.PointLight(0xffffff, 10000, 0, 1)
+p_light.position.set(0, 100, 0)
+scene.add(p_light)
 
 const fps = 30
 const lastUpdated = Date.now()
+const density = new Array(particle_num).fill(0)
 
 function animate() {
     requestAnimationFrame( animate );
@@ -65,6 +61,11 @@ function animate() {
                 (p2.position.z - p1.position.z),
             ).normalize()
 
+            if(r < 5) {
+                density[i] += 1
+                density[j] += 1
+            }
+
             if(r < p1.radius || r < p2.radius) continue
 
             const gravity = rv.multiplyScalar(G * p1.mass * p2.mass / (r * r))
@@ -75,6 +76,8 @@ function animate() {
 
     for(let i=0; i < particle_num; i++) {
         particles[i].integrate(1/fps)
+        particles[i].setColorHex(0xff0000 / particle_num * density[i])
+        density[i] = 0
         particles[i].force.set(0, 0, 0)
     }
 
